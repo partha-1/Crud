@@ -158,15 +158,40 @@ class _AddNewProductState extends State<AddNewProduct> {
   TextEditingController _productQuantityETController = TextEditingController();
   TextEditingController _productTotalPriceETController = TextEditingController();
 
+  GlobalKey<FormState> _form = GlobalKey(); // set unicidentifire for from
+
   Future<void> addANewProduct(String name, String productCode, String quantity,
       String image, String unitPrice, String totalPrice) async {
 
     //URL
     String url ='https://crud.teamrabbil.com/api/v1/CreateProduct';
     Uri uri = Uri.parse(url);
-    http.Response response = await http.post(uri);
+    http.Response response = await http.post(uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept' : 'application/json'
+        },
+
+        body: jsonEncode({
+        "Img":image,
+        "ProductCode": productCode,
+        "ProductName": name,
+        "Qty":quantity,
+        "TotalPrice":totalPrice,
+        "UnitPrice": unitPrice
+      })
+    );
     if (response.statusCode == 200){
+      print(response.body);
       print('Product added successfully');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('product added successful')));
+
+      _productImageETController.text = '';
+      _productTotalPriceETController.text = '';
+      _productUnitPriceETController.text = '';
+      _productNameETController.text = '';
+      _productCodeETController.text = '';
+      _productQuantityETController.text = '';
     }else {
       print('failed');
     }
@@ -184,54 +209,64 @@ class _AddNewProductState extends State<AddNewProduct> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child:  Column(
-          children: [
-            TextField(
-              controller: _productNameETController,
-              decoration: InputDecoration(
-                hintText: 'Product Name'
+        child:  Form(
+          key: _form,
+          child: Column(
+            children: [
+              TextFormField(
+                validator: (String? value){
+                  if (value?.isEmpty ?? true){
+                    return 'Please enter your product name';
+                  }
+                  return null;
+                },
+                controller: _productNameETController,
+                decoration: InputDecoration(
+                  hintText: 'Product Name'
+                ),
+              ),TextField(
+                controller: _productCodeETController,
+                decoration: InputDecoration(
+                  hintText: 'Product Code'
+                ),
+              ),TextField(
+                keyboardType: TextInputType.number,
+                controller: _productUnitPriceETController,
+                decoration: InputDecoration(
+                  hintText: 'Unit Price'
+                ),
+              ),TextField(
+                controller: _productImageETController,
+                decoration: InputDecoration(
+                  hintText: ' Image'
+                ),
+              ),TextField(
+                keyboardType: TextInputType.number,
+                controller: _productQuantityETController,
+                decoration: InputDecoration(
+                  hintText: 'Quantity'
+                ),
+              ),TextField(
+                keyboardType: TextInputType.number,
+                controller: _productTotalPriceETController,
+                decoration: InputDecoration(
+                  hintText: 'Total Price'
+                ),
               ),
-            ),TextField(
-              controller: _productCodeETController,
-              decoration: InputDecoration(
-                hintText: 'Product Code'
-              ),
-            ),TextField(
-              keyboardType: TextInputType.number,
-              controller: _productUnitPriceETController,
-              decoration: InputDecoration(
-                hintText: 'Unit Price'
-              ),
-            ),TextField(
-              controller: _productImageETController,
-              decoration: InputDecoration(
-                hintText: ' Image'
-              ),
-            ),TextField(
-              keyboardType: TextInputType.number,
-              controller: _productQuantityETController,
-              decoration: InputDecoration(
-                hintText: 'Quantity'
-              ),
-            ),TextField(
-              keyboardType: TextInputType.number,
-              controller: _productTotalPriceETController,
-              decoration: InputDecoration(
-                hintText: 'Total Price'
-              ),
-            ),
-            ElevatedButton(onPressed: (){
-              addANewProduct(
-                _productNameETController.text,
-                _productCodeETController.text,
-                _productQuantityETController.text,
-                _productImageETController.text,
-                _productUnitPriceETController.text,
-                _productTotalPriceETController.text,
+              ElevatedButton(onPressed: (){
+                if (_form.currentState!.validate()) {
+                addANewProduct(
+                  _productNameETController.text,
+                  _productCodeETController.text,
+                  _productQuantityETController.text,
+                  _productImageETController.text,
+                  _productUnitPriceETController.text,
+                  _productTotalPriceETController.text,
 
-              );
-            }, child: Text('add product'))
-          ],
+                );}
+              }, child: Text('add product'))
+            ],
+          ),
         ),
       ),
     );
